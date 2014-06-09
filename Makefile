@@ -8,3 +8,4 @@ thesis.dvi: thesis.tex atbeginend.sty iitmdiss.cls setspace.sty
 
 clean:
 	rm -rf *.aux *.log *.out *.toc *.lof *.lot *.bbl *.blg thesis.dvi
+	rm -rf chapters/*.aux
