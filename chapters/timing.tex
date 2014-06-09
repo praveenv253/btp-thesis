@@ -1,0 +1,59 @@
+\chapter{TIMING ANALYSIS}
+\label{chap:timing}
+
+\section{Packet detection}
+
+Timing analysis is used to determine the point in time where the packet starts.
+This is also a method to recognize \emph{whether} a packet has arrived or not.
+In the current scheme, the packet detection module uses the Schmidl and Cox %(TODO: Put citation here)
+method for timing analysis.
+
+\subsection{The Schmidl and Cox algorithm}
+
+For the receiver to be able to pick out a packet from ambient noise and
+interference, the transmitted packet must be designed for detection. All
+transmitted packets have a \emph{preamble}, which consists of two identical
+halves. Each half is a pseudo-random-number sequence. The correlation of each
+half with with other (independent and hence uncorrelated) signals is expected
+to be low. However, its correlation with the other half will be high. Moreover,
+this property is well-maintained even when the preamble is passed through an
+ISI channel with additive white gaussian noise.
+
+In other words, we can detect the start of a packet by correlating two adjacent
+windows, each having half the size of the preamble, with each other. The point
+where this correlation value becomes high can be taken to be the start of the
+packet.
+
+% TODO: Insert plot of preamble (real and imaginary) here
+% TODO: Insert a picture of the two windows correlating received data
+% TODO: Insert a picture of the metric over the data
+
+\subsection{Running correlation on the receive buffer}
+
+In order to efficiently perform a running correlation of adjacent windows over
+an entire receive buffer, we minimize the number of computations performed. On
+moving one step, we add the latest correlation point and subtract the oldest
+correlation point.
+
+Let $\ue{x}$ and $\ue{y}$ be complex vectors corresponding to the symbols in
+the left half-window and the right-half-window respectively. Let $n$ be the
+half-window size. After moving one time step, let these windows be denoted by
+the complex vectors $u$ and $v$ respectively.  We thus have $u_i = x_{i+1}$ and
+$v_i = y_{i+1}$ for $i = {1, 2, \ldots n-1}$.
+
+Let $c_{old}$ be the correlation of $x$ with $y$, and $c_{new}$ be the
+correlation of $u$ with $v$. That is,
+$$ c_{old} = \corr{\ue{x}}{\ue{y}} = \sum_1^n{\corr{x_i}{y_i}} $$
+$$ c_{new} = \corr{\ue{u}}{\ue{v}} = \sum_1^n{\corr{u_i}{v_i}} $$
+where $^*$ denotes complex conjugation. We can then write $c_{new}$ in terms of
+$c_{old}$ as follows:
+\begin{align}
+	c_{new} &= \sum_1^{n-1}{\corr{u_i}{v_i}} + \corr{u_n}{v_n} \\
+	        &= \sum_2^n{\corr{x_i}{y_i}} + \corr{u_n}{v_n} \\
+	        &= \sum_1^n{\corr{x_i}{y_i}} - \corr{x_1}{y_1} + \corr{u_n}{v_n} \\
+	        &= c_{old} - \corr{x_1}{y_1} + \corr{u_n}{v_n}
+\end{align}
+
+This way, once we have acquired the correlation of the first $n$ symbols, the
+correlation of subsequent windows is an $\mathcal{O}(1)$ process.
+
