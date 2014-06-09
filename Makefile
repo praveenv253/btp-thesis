@@ -1,6 +1,6 @@
 all: thesis.dvi
 
-thesis.dvi: thesis.tex atbeginend.sty iitmdiss.cls setspace.sty
+thesis.dvi: thesis.tex atbeginend.sty iitmdiss.cls setspace.sty chapters/*.tex
 	latex thesis.tex
 	bibtex thesis.aux
 	latex thesis.tex

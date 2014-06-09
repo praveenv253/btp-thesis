@@ -5,11 +5,11 @@
 % geometry package.  The double/singlespacing is setup using
 % setspace.  Figure captions are set using the hang option of
 % caption2.  natbib is used to do the citation using an
-% author-year format. I've made an iitm.bst file that formats 
+% author-year format. I've made an iitm.bst file that formats
 % the references as per the IITM guidelines.
 %
 % To use this class do the following:
-%  \documentclass[options]{iitmdiss} 
+%  \documentclass[options]{iitmdiss}
 %
 % Options:
 %
@@ -18,24 +18,24 @@
 %
 %   synopsis -- Generates the title page for the synopsis.  This also
 %   loads the article class instead of the report.
-%  
+%
 % Example:
 %
 % \documentclass[PhD,synopsis]{iitmdiss}
 % \documentclass[MS]{iitmdiss}
 %
 % IMPORTANT NOTICE:
-% 
+%
 %   PLEASE DO NOT MESS WITH THE MARGINS AND GENERAL FORMATTING SETUP
 %   IN THIS FILE UNLESS YOU ARE ABSOLUTELY SURE THAT THE FORMAT DOES NOT
-%   MATCH WITH THE THESIS GUIDELINES.  FOR EXAMPLE, DO NOT CHANGE THE 
+%   MATCH WITH THE THESIS GUIDELINES.  FOR EXAMPLE, DO NOT CHANGE THE
 %   MARGINS AND SPACING JUST TO MAKE YOUR THESIS LARGER!
-% 
+%
 % Notes:
 %
 %   * I am using as much of the Thesis guidelines for the spacing
 %     and margins as I can.
-%   * I have used newdiss.cls by R.~K.~Hariram, U.~V.~Ravindra et al. 
+%   * I have used newdiss.cls by R.~K.~Hariram, U.~V.~Ravindra et al.
 %     as a reference and a source for some of the macros.
 %   * This class will assume a4paper with 12pt fonts.
 %   * I am no TeXpert so feel free to clean up the mess.
@@ -82,7 +82,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Using setspace to do the single/double spacing.  Setspace also
 %% makes all tables and figures have single spacing automatically.
-\RequirePackage{setspace} 
+\RequirePackage{setspace}
 \RequirePackage{atbeginend} % used to redefine the list environs
 \setstretch{1.5}
 
@@ -99,11 +99,11 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Bibliography
-% 
+%
 % natbib allows easy switching of citation style and using it along
 % with the iitm.bst makes things perfect.
-\RequirePackage[authoryear,round]{natbib} 
-%\RequirePackage[numbers,square]{natbib} 
+\RequirePackage[authoryear,round]{natbib}
+%\RequirePackage[numbers,square]{natbib}
 \bibliographystyle{iitm}
 
 \newcommand{\bibstyle@iitm}{\bibpunct{(}{)}{;}{a}{,}{,}%
@@ -280,7 +280,7 @@
        \interlinepenalty\@M
        \Large \bf
        \begin{center}
-         #1\par\nobreak      
+         #1\par\nobreak
        \end{center}
        \vskip 20\p@
        \thispagestyle{empty}
@@ -305,7 +305,7 @@
            %\addcontentsline{toc}{chapter}{LIST OF PAPERS BASED ON THESIS}
    }
 
-   
+
    % CV
    \def\CV{\chapter*{\centerline{CURRICULUM VITAE}}}
 
