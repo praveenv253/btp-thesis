@@ -13,124 +13,15 @@
 
 \begin{document}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Title page
-
-\title{A MODULARIZED OFDM STACK FOR COMMUNICATION USING UNIVERSAL SOFTWARE
-       DEFINED RADIO PERIPHERALS}
-
-\author{PRAVEEN VENKATESH}
-
-\date{JUNE 2014}
-\department{ELECTRICAL ENGINEERING}
-
-\maketitle
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Certificate
-
-\certificate
-
-\vspace*{0.5in}
-
-\noindent This is to certify that the thesis titled {\bf A Modularized OFDM
-Stack for Communication using Universal Software Defined Radio Peripherals},
-submitted by {\bf Praveen Venkatesh}, to the Indian Institute of Technology,
-Madras, in partial fulfillment of the requirements for the award of the degree
-of {\bf Bachelor of Technology}, is a bona fide record of the work done by him
-under our supervision. The contents of this thesis, in full or in parts, have
-not been submitted to any other Institute or University for the award of any
-degree or diploma.
-
-\vspace*{1.5in}
-
-\begin{singlespacing}
-\hspace*{-0.25in}
-\parbox{2.5in}{
-	\noindent {\bf Prof.~Radhakrishna~Ganti} \\
-	\noindent Research Guide \\
-	\noindent Assistant Professor \\
-	\noindent Dept. of Electrical Engineering\\
-	\noindent IIT Madras - 600 036 \\
-}
-\hspace*{1.0in}
-\end{singlespacing}
-
-\vspace*{0.25in}
-
-\noindent Place: Chennai \\
-Date: 13 June, 2014
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Acknowledgements
-
-\acknowledgements
-
-% TODO
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Abstract
-
-\abstract
-
-\noindent \textsc{keywords} \hspace*{0.5em} \parbox[t]{4.4in} {Orthogonal
-Frequency Division Multiplexing; Timing Synchronization; Universal Software
-Defined Radio Peripheral; Log Likelihood Ratio, Joint Trellis Shaping; Dirty
-Paper Coding}
-
-\vspace*{24pt}
-
-\noindent This report outlines the theory behind, the working of, and the
-design decisions that went into the creation of an OFDM stack and a few other
-modules that were constructed primarily as component blocks of a larger
-project aimed at implementing and demonstrating a real-time Dirty Paper Coding
-framework in a base-station-with-two-users environment. The report aims to be
-used as a reference design document for future generations of this framework.
-
+\include{frontmatter/titlepage}
+\include{frontmatter/certificate}
+\include{frontmatter/acknowledgements}
+\include{frontmatter/abstract}
 \pagebreak
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Table of contents
-
-\begin{singlespace}
-\tableofcontents
-\thispagestyle{empty}
-
-\listoftables
-\addcontentsline{toc}{chapter}{LIST OF TABLES}
-\listoffigures
-\addcontentsline{toc}{chapter}{LIST OF FIGURES}
-\end{singlespace}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Abbreviations
-
-\abbreviations
-
-\noindent
-\begin{tabbing}
-	xxxxxxxxxxx \= xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \kill
-	\textsc{ofdm} \> Orthogonal Frequency Division Multiplexing \\
-	\textsc{usrp} \> Universal Software Defined Radio Peripheral \\
-\end{tabbing}
-
+\include{frontmatter/toc}
+\include{frontmatter/abbreviations}
 \pagebreak
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Notation
-
-\chapter*{\centerline{NOTATION}}
-\addcontentsline{toc}{chapter}{NOTATION}
-
-\begin{singlespace}
-\begin{tabbing}
-xxxxxxxxxxx \= xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \kill
-\textbf{$r$}  \> Radius, $m$ \\
-\textbf{$\alpha$}  \> Angle of thesis in degrees \\
-\textbf{$\beta$}   \> Flight path in degrees \\
-\end{tabbing}
-\end{singlespace}
-
+\include{frontmatter/notation}
 \pagebreak
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
