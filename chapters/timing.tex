@@ -10,6 +10,11 @@ This is also a method to recognize \emph{whether} a packet has arrived or not.
 In the current scheme, the packet detection module uses the Schmidl and Cox %(TODO: Put citation here)
 method for timing analysis.
 
+This entire section will assume a level of abstraction wherein we have an
+inexhaustible data source of digital, complex symbols at the receiver. We
+acquire this data by reading from this source into a buffer (which is simply an
+array) in our receiver program's source code.
+
 \subsection{The Schmidl and Cox algorithm}
 
 For the receiver to be able to pick out a packet from ambient noise and
@@ -31,7 +36,7 @@ packet.
 
 The metric used to determine whether or not the correlation value is high
 enough is the normalized cross-correlation, defined as
-$$ \text{Metric} = \frac{|\text{Cross-correlation of the two windows}|^2}
+$$ \text{Metric} = \frac{|\text{ Cross-correlation of the two windows }|^2}
                         {\text{Product of the autocorrelations of the windows}}
 $$
 
@@ -66,6 +71,30 @@ $c_{old}$ as follows:
 This way, once we have acquired the correlation of the first $n$ symbols, the
 correlation of subsequent windows is an $\mathcal{O}(1)$ process.
 
+\subsection{Implementation using the two-frame block}
+\label{subsec:two-frame-impl}
+
+In order to implement the Schmidl and Cox algorithm, we need to continuously
+scan through the received symbols, correlating two windows, each half the size
+of the preamble. Once the preamble is found, we need to pull out a full
+\verb+frame_size+ number of symbols from the buffer.
+
+Obviously, the receive buffer should be at least as long as the preamble. But
+if the receive buffer is too long, then depending upon the rate of
+communication, we may be adding latency to our program by having to wait for
+the buffer to get filled. If our receive buffer is only one \verb+frame_size+
+long, then on finding the preamble in the middle of this buffer, we will have
+to take into account how many symbols more we need to extract for the frame
+from the next buffer. This is cumbersome and error-prone.
+
+A simpler implementation scheme involves having a receive buffer that is two
+\verb+frame_size+s long. We refer to this buffer as the \emph{two-frame block}.
+On each iteration, we search only the first half of the buffer. Even if the
+preamble is found towards the end of the first half, we can still pull out a
+full \verb+frame_size+ from the two-frame block.
+
+%TODO: Insert picture of two-frame block along with the correlating windows.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{The DC offset problem}
@@ -79,7 +108,6 @@ correlation of subsequent windows is an $\mathcal{O}(1)$ process.
 \section{Practical considerations}
 
 \subsection{Cross-correlation cut-off for noisy regions}
-\label{sec:cross-corr-cut-off}
 
 We expect the absolute value of the cross-correlation of the two windows to be
 much lower than the product of their autocorrelations. However, we found that
@@ -102,12 +130,13 @@ packet.
 %TODO: Put pseudocode / actual code snippet here
 
 \subsection{Violation of Cauchy-Schwarz inequality}
+\label{subsec:cs-violation}
 
 We discovered that at certain instances, for example when searching for the
 preamble towards the end of a previous frame, the value of the metric exceeded
 unity. In a strict mathematical sense, this is impossible, since
 cross-correlation is an inner product operation, and the Cauchy-Schwarz
-inequlity guarantees that
+inequality guarantees that
 $$ \langle \ue{u}, \ue{v} \rangle ^2 \leqslant |\ue{u}||\ue{v}| $$
 Nevertheless, the situation was observed. On closer inspection, we found that
 at the edge of the frame, the values of the complex symbols dropped rapidly. In
@@ -127,13 +156,14 @@ zero to avoid further propagation of this error.
 %TODO: Insert code snippet
 
 \subsection{Fine metric}
+\label{subsec:fine-metric}
 
 When searching for the preamble in the body of a previous frame, we sometimes
 found that the value of the metric exceeded the threshold. Essentially, the
 values of the complex symbols within the frame depends on the data being
 transmitted. It might so happen that the data produces a short repeating
 pattern of the same length as the preamble in the bulk of the frame. In such a
-sitation, the timing synchronizer will erroneously detect a packet in the
+situation, the timing synchronizer will erroneously detect a packet in the
 middle of a frame.
 
 This is because, so far, we have only correlated the first half of the preamble
@@ -160,11 +190,117 @@ $\text{max}(\ue{h})$.
 
 %TODO: Insert fine metric plot
 
+\subsection{Going left for safety}
+\label{subsec:safety}
+
+In the event that the packet location as determined by the timing synchronizer
+is not exactly correct, or in the event that there are several dominant taps
+in the channel impulse response, we may not extract a good OFDM block. That is,
+the OFDM block extracted may be polluted by the cyclic prefix of the subsequent
+block. Such pollution cannot be corrected for by OFDM.
+
+Therefore, to be \emph{safe}, we introduced a \verb+safety+ parameter. When
+supplying the final packet location, we shift the packet \verb+safety+
+positions to the left. This ensures that each OFDM block extracted will contain
+only its own symbols. Instead of picking up symbols from the next block, we
+would pick up symbols of the cyclic prefix of the same block. This can then be
+corrected for by performing integer frequency offset estimation, in order to
+rotate the block suitably.
+
+The final location of the packet that is returned is therefore \\
+\verb|        packet_loc = peak_index + preamble_length - safety|
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Further optimizations}
 
+On profiling the program, it was found that the timing synchronizer was the
+slowest block, taking up to 50\% of the receiver program's run time. In order
+to speed up the timing synchronizer to the extent possible, therefore, a few
+more optimizations were performed that focused on reducing the amount of work
+the timing synchronizer had to do.
+
 \subsection{Stopping correlation after threshold breach}
+
+The first optimization relies on the accuracy of the currently used timing
+analysis algorithm. We found that the algorithm is quite selective in picking
+out packets correctly. Given that this is the case, we assume that once the
+fine metric threshold has been breached, a packet has been found, and that we
+only need to find the dominant channel tap to find the best `location' of the
+preamble.
+
+Therefore, once the fine metric has been breached, we continue correlating only
+up to a number \verb+max_time_steps_after_threshold+ of time steps. After this,
+the point of maximum correlation is returned as the packet's location.
+
 \subsection{Discarding the found frame block}
+
+Once a preamble has been found in the two-frame block, we know that a full
+frame follows. All symbols corresponding to this frame can then be removed from
+the receive buffer so that we do not search what we know is part of a frame.
+
+This way, we also (mostly) avoid the problems mentioned in
+subsections~\ref{subsec:cs-violation} and~\ref{subsec:fine-metric}. Otherwise,
+we would always have to scan the entirety of the second window, parts of which
+might contain the frame body. Note that we do not entirely avoid this problem.
+In the presence of an ISI channel, the effective frame length is longer than
+one \verb+frame_size+, and in the event that the preamble is found at the end
+of the first window, it is possible that the frame edge goes outside of the
+second frame window, meaning parts of the frame would be yet to be received
+into the 2-frame buffer. The other scenario where we may scan the bulk of the
+frame in search of a packet is when the timing synchronizer fails to detet a
+frame that is actually preset. In both these cases, we would encounter symbols
+from the bulk of the frame, and thus the measures taken in
+subsections~\ref{subsec:cs-violation} and~\ref{subsec:fine-metric} cannot be
+done away with.
+
+%TODO: Insert picture of two-frame block with frame guards and num_to_acquire
+%      and num_left_to_search marked out
+
+We had remarked in subsection~\ref{subsec:two-frame-impl} that a one-frame
+block is cumbersome and error-prone, since it is difficult to maintain and
+update information on how many symbols have been extracted and how many more
+are left to extract. Nevertheless, in the name of optimization, this is
+exactly what we now proceed to do.
+
+We maintain two variables that describe the state of the two-frame block
+\emph{outside} of the timing synchronizer at any given point in time. The first
+is \verb+num_left_to_search+, which denotes the number of symbols that are
+present in the two-frame block that have yet to be searched by the timing
+synchronizer. The second is \verb+num_to_acquire+, which denotes the number of
+symbols that have to be acquired from the complex data source in the current
+iteration of the receive loop to fill the remainder of the buffer. While it is
+redundant to maintain two variables, since we have
+\verb|num_left_to_search + num_to_acquire = 2 * frame_size| but we do so for
+the sake of convenience.
+
+During initialization, both \verb+num_to_acquire+ and \verb+num_left_to_search+
+are set to \verb+frame_size+. When the first frame is found, it will be found
+somewhere in the middle of the two-frame block. Let this point in the two-frame
+block be \verb+packet_loc+. As mentioned in \ref{subsec:safety}, the packet
+location returned is after the preamble, but then \verb+safety+ positions to
+the left. Thus, from \verb+packet_loc+, we can discard
+\verb|frame_size - preamble_length + safety| number of symbols.
+
+To make sure that we do not read symbols at the end of the frame, we assume
+that there is some minimum distance between two frames. This distance is called
+the \verb+frame_guard+. The number of symbols to discard, from
+\verb+packet_loc+ onwards, is then
+$\mathtt{frame\_size} - \mathtt{preamble\_length} + \mathtt{safety}
++ \mathtt{frame\_guard}$. In other words, the only relevant parameter, which is
+the number of symbols that we still need to search through in the two-frame
+block is
+%TODO: Fix this equation
+\begin{align}
+	\mathtt{num\_left\_to\_search} &= 2 \times \mathtt{frame\_size}
+                            - (\mathtt{frame\_size} - \mathtt{preamble\_length}
+                                  + \mathtt{safety} + \mathtt{frame\_guard}) \\
+         &= \mathtt{frame\_size} + \mathtt{preamble\_length}
+									  - \mathtt{safety} - \mathtt{frame\_guard}
+\end{align}
+
+\verb+num_to_acquire+, which is the number of symbols that need to be acquired
+in the next iteration of the receive loop is then
+\verb|2 * frame_size - num_left_to_search|.
 
 % TODO: Appendix on tuning the timing synchronizer
