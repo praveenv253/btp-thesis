@@ -1,6 +1,8 @@
 \chapter{TIMING ANALYSIS}
 \label{chap:timing}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \section{Packet detection}
 
 Timing analysis is used to determine the point in time where the packet starts.
@@ -26,6 +28,13 @@ packet.
 
 % TODO: Insert plot of preamble (real and imaginary) here
 % TODO: Insert a picture of the two windows correlating received data
+
+The metric used to determine whether or not the correlation value is high
+enough is the normalized cross-correlation, defined as
+$$ \text{Metric} = \frac{|\text{Cross-correlation of the two windows}|^2}
+                        {\text{Product of the autocorrelations of the windows}}
+$$
+
 % TODO: Insert a picture of the metric over the data
 
 \subsection{Running correlation on the receive buffer}
@@ -57,3 +66,105 @@ $c_{old}$ as follows:
 This way, once we have acquired the correlation of the first $n$ symbols, the
 correlation of subsequent windows is an $\mathcal{O}(1)$ process.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{The DC offset problem}
+
+\subsection{Discovering the DC offset}
+\subsection{Eliminating the DC offset}
+\subsection{Running correlations with DC offset elimination}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Practical considerations}
+
+\subsection{Cross-correlation cut-off for noisy regions}
+\label{sec:cross-corr-cut-off}
+
+We expect the absolute value of the cross-correlation of the two windows to be
+much lower than the product of their autocorrelations. However, we found that
+the value of the metric tended at times to be quite large, and even comparable
+to the threshold used to determine the presence of a packet.
+
+A possible reason for this might be the accumulation of errors due to the
+running correlation algorithm being employed. In the regions of noise, both the
+autocorrelation and cross-correlation values are low, however, random
+fluctuations in the noise and in the error could sometimes cause them to become
+roughly of the same order of magnitude.
+
+In order to prevent erroneous packet detection in noisy regions, we introduced
+a cut-off based on the absolute value of the cross-correlation. This cut-off
+value must be empirically determined. If the absolute value of the
+cross-correlation is less that the cut-off, we manually set the running
+cross-correlation at the point to be zero, and skip all other checks for the
+packet.
+
+%TODO: Put pseudocode / actual code snippet here
+
+\subsection{Violation of Cauchy-Schwarz inequality}
+
+We discovered that at certain instances, for example when searching for the
+preamble towards the end of a previous frame, the value of the metric exceeded
+unity. In a strict mathematical sense, this is impossible, since
+cross-correlation is an inner product operation, and the Cauchy-Schwarz
+inequlity guarantees that
+$$ \langle \ue{u}, \ue{v} \rangle ^2 \leqslant |\ue{u}||\ue{v}| $$
+Nevertheless, the situation was observed. On closer inspection, we found that
+at the edge of the frame, the values of the complex symbols dropped rapidly. In
+such a situation, it took time for the cross-correlation value to settle (time
+for the accumulated errors to diminish in comparison to the cross-correlation
+value itself), whereas the autocorrelation values settled faster. This caused
+the cross-correlation value to exceed the autocorrelation product, thus giving
+a metric value greater than unity.
+
+When checking for the preamble itself, we gave allowances for errors causing
+the metric value to exceed unity. But in the situation described above, this
+occurred with far larger deviations than we might expect due purely to floating
+point error. In fact, the error was the accumulated error in the algorithm
+itself. In such situations also, we manually set the cross-correlation value to
+zero to avoid further propagation of this error.
+
+%TODO: Insert code snippet
+
+\subsection{Fine metric}
+
+When searching for the preamble in the body of a previous frame, we sometimes
+found that the value of the metric exceeded the threshold. Essentially, the
+values of the complex symbols within the frame depends on the data being
+transmitted. It might so happen that the data produces a short repeating
+pattern of the same length as the preamble in the bulk of the frame. In such a
+sitation, the timing synchronizer will erroneously detect a packet in the
+middle of a frame.
+
+This is because, so far, we have only correlated the first half of the preamble
+with the second half in the received vector. We never correlated the received
+symbols with the actual preamble values themselves (which are fixed, and thus
+known at the receiver). It may not be possible to simply increase the threshold
+until this stops happening, since the threshold value is determined by the
+amount of noise in the system. %TODO: Insert ref to appendix with tuning.
+
+To fix this issue, the fine metric is computed by correlating the first window
+with the first half of the expected preamble. This is only done when the coarse
+metric exceeds the threshold, since it is an expensive operation and since we
+cannot use a running correlation algorithm to compute it. The fine metric value
+has its own threshold, which is used as a second-pass for ensuring the presence
+of an authentic preamble.
+
+Note that even in the presence of an ISI channel, the fine metric will pick up
+the most dominant channel tap. If $\ue{p}$ is the preamble vector and $\ue{h}$
+is the channel, then the received preamble is
+$$\ue{y} = \ue{p} * \ue{h}$$
+This received vector is now correlated with the preamble itself, so that the
+fine metric peaks at $\text{argmax}(\ue{h})$ with a peak value of
+$\text{max}(\ue{h})$.
+
+%TODO: Insert fine metric plot
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Further optimizations}
+
+\subsection{Stopping correlation after threshold breach}
+\subsection{Discarding the found frame block}
+
+% TODO: Appendix on tuning the timing synchronizer
