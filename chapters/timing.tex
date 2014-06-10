@@ -242,17 +242,17 @@ the receive buffer so that we do not search what we know is part of a frame.
 This way, we also (mostly) avoid the problems mentioned in
 subsections~\ref{subsec:cs-violation} and~\ref{subsec:fine-metric}. Otherwise,
 we would always have to scan the entirety of the second window, parts of which
-might contain the frame body. Note that we do not entirely avoid this problem.
-In the presence of an ISI channel, the effective frame length is longer than
-one \verb+frame_size+, and in the event that the preamble is found at the end
-of the first window, it is possible that the frame edge goes outside of the
-second frame window, meaning parts of the frame would be yet to be received
-into the 2-frame buffer. The other scenario where we may scan the bulk of the
-frame in search of a packet is when the timing synchronizer fails to detet a
-frame that is actually preset. In both these cases, we would encounter symbols
-from the bulk of the frame, and thus the measures taken in
+might contain the frame body.\footnote{Note that we do not entirely avoid this
+problem. In the presence of an ISI channel, the effective frame length is
+longer than one \verb+frame_size+, and in the event that the preamble is found
+at the end of the first window, it is possible that the frame edge goes outside
+of the second frame window, meaning parts of the frame would be yet to be
+received into the two-frame buffer. The other scenario where we may scan the
+bulk of the frame in search of a packet is when the timing synchronizer fails
+to detet a frame that is actually preset. In both these cases, we would
+encounter symbols from the bulk of the frame, and thus the measures taken in
 subsections~\ref{subsec:cs-violation} and~\ref{subsec:fine-metric} cannot be
-done away with.
+done away with.}
 
 %TODO: Insert picture of two-frame block with frame guards and num_to_acquire
 %      and num_left_to_search marked out
