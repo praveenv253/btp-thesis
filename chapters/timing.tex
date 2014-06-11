@@ -36,9 +36,19 @@ packet.
 
 The metric used to determine whether or not the correlation value is high
 enough is the normalized cross-correlation, defined as
-$$ \text{Metric} = \frac{|\text{ Cross-correlation of the two windows }|^2}
-                        {\text{Product of the autocorrelations of the windows}}
+$$ \text{Metric} = \frac{|\text{ Cross-correlation of the two windows }|}
+                        {\sqrt\text{Product of the autocorrelations of the
+						            windows}}
 $$
+Let $\ue{x}$ be the vector of complex values corresponding to the first window
+and $\ue{y}$ be that corresponding to the second. Then, the metric $m$ is
+given by
+\begin{equation} \label{eqn:old-metric}
+	m = \frac{|\corr{\ue{x}}{\ue{y}}|}{|\ue{x}||\ue{y}|}
+\end{equation}
+where $(^*)$ denotes complex conjugation in the case of scalars and complex
+conjugate transpose in the case of vectors. All vectors are taken to be row
+vectors.
 
 % TODO: Insert a picture of the metric over the data
 
@@ -49,23 +59,31 @@ an entire receive buffer, we minimize the number of computations performed. On
 moving one step, we add the latest correlation point and subtract the oldest
 correlation point.
 
-Let $\ue{x}$ and $\ue{y}$ be complex vectors corresponding to the symbols in
-the left half-window and the right-half-window respectively. Let $n$ be the
-half-window size. After moving one time step, let these windows be denoted by
-the complex vectors $u$ and $v$ respectively.  We thus have $u_i = x_{i+1}$ and
-$v_i = y_{i+1}$ for $i = {1, 2, \ldots n-1}$.
+Let $\{x_i\}_{i=0}^{n-1}$ and $\{y_i\}_{i=0}^{n-1}$ be complex sequences
+corresponding to the symbols in the left window and the right window
+respectively, where $n$ is the window size, which is half the length of the
+preamble. In the next time step, these windows are denoted as
+$\{x_i\}_{i=1}^{n}$ and $\{y_i\}_{i=1}^{n}$ respectively.\footnote{Note that
+for the purpose of these calculations, the two windows may be disconnected or
+overlapping. No assumptions are made regarding the equality of certain ranges
+of $x_i$ and $y_i$. Specifically, we do \emph{not} assume that $x_n = y_0$.
+Thus, when $x_i = y_i\;\forall\;i\in\{0,1,\ldots n-1\}$, we automatically
+arrive at the running autocorrelation formula.}
 
-Let $c_{old}$ be the correlation of $x$ with $y$, and $c_{new}$ be the
-correlation of $u$ with $v$. That is,
-$$ c_{old} = \corr{\ue{x}}{\ue{y}} = \sum_1^n{\corr{x_i}{y_i}} $$
-$$ c_{new} = \corr{\ue{u}}{\ue{v}} = \sum_1^n{\corr{u_i}{v_i}} $$
-where $^*$ denotes complex conjugation. We can then write $c_{new}$ in terms of
-$c_{old}$ as follows:
+Let $c_{old}$ be the correlation of windows in the current time step, and
+$c_{new}$ be the correlation of the windows in the next time step. That is,
+\begin{equation}
+	c_{old} = \sum_{i=0}^{n-1}{\corr{x_i}{y_i}}
+\end{equation}
+\begin{equation}
+	c_{new} = \sum_{i=1}^n{\corr{x_i}{y_i}}
+\end{equation}
+We can then write $c_{new}$ in terms of $c_{old}$ as follows:
 \begin{align}
-	c_{new} &= \sum_1^{n-1}{\corr{u_i}{v_i}} + \corr{u_n}{v_n} \\
-	        &= \sum_2^n{\corr{x_i}{y_i}} + \corr{u_n}{v_n} \\
-	        &= \sum_1^n{\corr{x_i}{y_i}} - \corr{x_1}{y_1} + \corr{u_n}{v_n} \\
-	        &= c_{old} - \corr{x_1}{y_1} + \corr{u_n}{v_n}
+	c_{new} &= \sum_{i=0}^{n-1}{\corr{x_i}{y_i}} - \corr{x_0}{y_0}
+	                                             + \corr{x_n}{y_n} \\
+	        &= c_{old} - \corr{x_0}{y_0} + \corr{x_n}{y_n}
+	                                                     \label{eqn:old-update}
 \end{align}
 
 This way, once we have acquired the correlation of the first $n$ symbols, the
@@ -101,8 +119,74 @@ full \verb+frame_size+ from the two-frame block.
 
 \subsection{Discovering the DC offset}
 \subsection{Eliminating the DC offset}
+
+We eliminate the DC offset by subtracting out the mean of each window before
+correlation. That is, instead of equation~\ref{eqn:old-metric}, we have
+\begin{equation} \label{eqn:new-metric}
+	m = \frac{|\corr{(\ue{x}-\bar{x})}{(\ue{y}-\bar{y})}|}
+	         {|\ue{x}-\bar{x}||\ue{y}-\bar{y}|}
+\end{equation}
+where $\bar{x}$ refers to the mean of the vector $\ue{x}$.
+
 \subsection{Running correlations with DC offset elimination}
 
+In order to perform running correlations with the new metric, we need to
+come up with an update equation similar to equation~\ref{eqn:old-update}.
+
+As before, let $\{x_i\}_{i=0}^{n-1}$ and $\{y_i\}_{i=0}^{n-1}$ be complex
+sequences corresponding to the symbols in the left window and the right window
+respectively. Furthermore, let $\bar{x}$ and $\bar{y}$ be the means of the
+left and right windows in the first time step. In the next time step, both
+windows are moved one step to the right. Let the new means be $\bar{u}$ and
+$\bar{v}$.
+
+Then we immediately have an update equation for the means themselves:
+\begin{align}
+	\bar{u} &= \bar{x} + \frac{x_n - x_0}{n} \\
+	\bar{v} &= \bar{y} + \frac{y_n - x_0}{n}
+\end{align}
+
+We want to obtain $\sum_{i=1}^n{\corr{(x_i-\bar{u})}{(y_i-\bar{v})}}$ in terms
+of $\sum_{i=0}^{n-1}{\corr{(x_i-\bar{x})}{(y_i-\bar{y})}}$.
+\begin{equation}
+	\begin{split}
+		\sum_{i=1}^{n-1}{\corr{(x_i - \bar{x})}{(y_i - \bar{y})}}
+		&= \sum_{i=1}^{n-1}{\corr{\left ( x_i - \bar{u} + \frac{x_n - x_0}{n} \right )}{\left ( y_i - \bar{v} + \frac{y_n-y_0}{n} \right )}} \\
+		&= \sum_{i=1}^{n-1}{\corr{(x_i - \bar{u})}{(y_i - \bar{v})}} + \left ( \frac{x_n - x_0}{n} \right )\sum_{i=1}^{n-1}{(y_i - \bar{v})^*} \\
+		& \quad + \left ( \frac{y_n - y_0}{n} \right )^*\sum_{i=1}^{n-1}{(x_i - \bar{u})} + \sum_{i=1}^{n-1}{\left ( \frac{x_n - x_0}{n} \right )\left ( \frac{y_n - y_0}{n} \right )^*}
+	\end{split}
+\end{equation}
+Now,
+\begin{align}
+	\sum_{i=1}^{n-1}{(x_i - \bar{u})} &= \sum_{i=1}^{n-1}{x_i} - (n-1)\bar{u} \\
+	                                  &= \sum_{i=1}^n{x_i}-x_n-(n-1)\bar{u} \\
+	                                  &= n\bar{u} - x_n - (n-1)\bar{u} \\
+	                                  &= \bar{u} - x_n
+\end{align}
+And similarly,
+\begin{equation}
+	\sum_{i=1}^{n-1}{(y_i - \bar{v})^*} = (\bar{v} - y_n)^*
+\end{equation}
+Therefore,
+\begin{equation}
+	\begin{split}
+		\sum_{i=0}^{n-1}{\corr{(x_i - \bar{x})}{(y_i - \bar{y})}}
+		&= \sum_{i=1}^n{\corr{(x_i - \bar{u})}{(y_i - \bar{v})}}
+		   - \corr{(x_n - \bar{u})}{(y_n - \bar{v})} \\
+		& \quad + \corr{(x_0 - \bar{x})}{(y_0 - \bar{y})}
+		   + \left ( \frac{x_n - x_0}{n} \right )(\bar{v} - y_n)^* \\
+		& \quad + \left ( \frac{y_n - y_0}{n} \right )^*(\bar{u} - x_n)
+		   + (n-1) \left ( \frac{x_n - x_0}{n} \right ) \left ( \frac{y_n - y_0}{n} \right )^*
+	\end{split}
+\end{equation}
+We can acquire the basic form of the update equation by rearranging terms:
+\begin{equation}
+	\begin{split}
+		c_{new} &= c_{old} - \left ( \frac{x_n - x_0}{n} \right ) (\bar{v} - y_n)^* - \left ( \frac{y_n - y_0}{n} \right )^* (\bar{u} - x_n) \\
+		        & \quad - (n-1) \left ( \frac{x_n - x_0}{n} \right ) \left ( \frac{y_n - y_0}{n} \right )^* \\
+		        & \quad + \corr{(x_n - \bar{u})}{(y_n - \bar{v})} - \corr{(x_0 - \bar{x})}{(y_0 - \bar{y})}
+	\end{split}
+\end{equation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Practical considerations}
@@ -137,7 +221,7 @@ preamble towards the end of a previous frame, the value of the metric exceeded
 unity. In a strict mathematical sense, this is impossible, since
 cross-correlation is an inner product operation, and the Cauchy-Schwarz
 inequality guarantees that
-$$ \langle \ue{u}, \ue{v} \rangle ^2 \leqslant |\ue{u}||\ue{v}| $$
+$$ \langle \ue{u}, \ue{v} \rangle \leqslant |\ue{u}||\ue{v}| $$
 Nevertheless, the situation was observed. On closer inspection, we found that
 at the edge of the frame, the values of the complex symbols dropped rapidly. In
 such a situation, it took time for the cross-correlation value to settle (time
@@ -265,42 +349,42 @@ exactly what we now proceed to do.
 
 We maintain two variables that describe the state of the two-frame block
 \emph{outside} of the timing synchronizer at any given point in time. The first
-is \verb+num_left_to_search+, which denotes the number of symbols that are
-present in the two-frame block that have yet to be searched by the timing
+is $\texttt{num\_left\_to\_search}$, which denotes the number of symbols that
+are present in the two-frame block that have yet to be searched by the timing
 synchronizer. The second is \verb+num_to_acquire+, which denotes the number of
 symbols that have to be acquired from the complex data source in the current
 iteration of the receive loop to fill the remainder of the buffer. While it is
 redundant to maintain two variables, since we have
-\verb|num_left_to_search + num_to_acquire = 2 * frame_size| but we do so for
-the sake of convenience.
+$\texttt{num\_left\_to\_search} + \texttt{num\_to\_acquire} = 2 \times
+\texttt{frame\_size}$ but we do so for the sake of convenience.
 
 During initialization, both \verb+num_to_acquire+ and \verb+num_left_to_search+
 are set to \verb+frame_size+. When the first frame is found, it will be found
 somewhere in the middle of the two-frame block. Let this point in the two-frame
 block be \verb+packet_loc+. As mentioned in \ref{subsec:safety}, the packet
 location returned is after the preamble, but then \verb+safety+ positions to
-the left. Thus, from \verb+packet_loc+, we can discard
-\verb|frame_size - preamble_length + safety| number of symbols.
+the left. Thus, from \verb+packet_loc+, we can discard $\texttt{frame\_size}
+- \texttt{preamble\_length} + \texttt{safety}$ number of symbols.
 
 To make sure that we do not read symbols at the end of the frame, we assume
 that there is some minimum distance between two frames. This distance is called
 the \verb+frame_guard+. The number of symbols to discard, from
-\verb+packet_loc+ onwards, is then
-$\mathtt{frame\_size} - \mathtt{preamble\_length} + \mathtt{safety}
-+ \mathtt{frame\_guard}$. In other words, the only relevant parameter, which is
-the number of symbols that we still need to search through in the two-frame
-block is
-%TODO: Fix this equation
-\begin{align}
-	\mathtt{num\_left\_to\_search} &= 2 \times \mathtt{frame\_size}
-                            - (\mathtt{frame\_size} - \mathtt{preamble\_length}
-                                  + \mathtt{safety} + \mathtt{frame\_guard}) \\
-         &= \mathtt{frame\_size} + \mathtt{preamble\_length}
-									  - \mathtt{safety} - \mathtt{frame\_guard}
-\end{align}
+\verb+packet_loc+ onwards, is then $\texttt{frame\_size}
+- \texttt{preamble\_length} + \texttt{safety} + \texttt{frame\_guard}$. In
+other words, the only relevant parameter, which is the number of symbols that
+we still need to search through in the two-frame block is
+\begin{equation}
+	\begin{split}
+		\texttt{num\_left\_to\_search} &= 2 \times \texttt{frame\_size} \\
+									   & \quad - (\texttt{frame\_size} - \texttt{preamble\_length} \\
+		                               & \quad \quad \; + \texttt{safety} + \texttt{frame\_guard}) \\
+		                               &= \texttt{frame\_size} + \texttt{preamble\_length} \\
+		                               & \quad - \texttt{safety} - \texttt{frame\_guard}
+	\end{split}
+\end{equation}
 
 \verb+num_to_acquire+, which is the number of symbols that need to be acquired
 in the next iteration of the receive loop is then
-\verb|2 * frame_size - num_left_to_search|.
+$2 \times \texttt{frame\_size} - \texttt{num\_left\_to\_search}$.
 
 % TODO: Appendix on tuning the timing synchronizer
