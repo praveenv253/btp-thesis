@@ -31,14 +31,18 @@ windows, each having half the size of the preamble, with each other. The point
 where this correlation value becomes high can be taken to be the start of the
 packet.
 
-% TODO: Insert plot of preamble (real and imaginary) here
-% TODO: Insert a picture of the two windows correlating received data
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{preamble-abs}
+	\caption{Absolute value of the preamble}
+	\label{fig:preamble-abs}
+\end{figure}
 
 The metric used to determine whether or not the correlation value is high
 enough is the normalized cross-correlation, defined as
 $$ \text{Metric} = \frac{|\text{ Cross-correlation of the two windows }|}
                         {\sqrt\text{Product of the autocorrelations of the
-						            windows}}
+                                    windows}}
 $$
 Let $\ue{x}$ be the vector of complex values corresponding to the first window
 and $\ue{y}$ be that corresponding to the second. Then, the metric $m$ is
@@ -58,6 +62,13 @@ In order to efficiently perform a running correlation of adjacent windows over
 an entire receive buffer, we minimize the number of computations performed. On
 moving one step, we add the latest correlation point and subtract the oldest
 correlation point.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{correlation-windows}
+	\caption{Correlation windows}
+	\label{fig:correlation-windows}
+\end{figure}
 
 Let $\{x_i\}_{i=0}^{n-1}$ and $\{y_i\}_{i=0}^{n-1}$ be complex sequences
 corresponding to the symbols in the left window and the right window
