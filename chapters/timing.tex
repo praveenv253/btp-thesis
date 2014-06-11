@@ -67,7 +67,7 @@ correlation point.
 	\centering
 	\includegraphics[width=0.8\textwidth]{correlation-windows}
 	\caption{Correlation windows}
-	\label{fig:correlation-windows}
+	\label{fig:corr-win}
 \end{figure}
 
 Let $\{x_i\}_{i=0}^{n-1}$ and $\{y_i\}_{i=0}^{n-1}$ be complex sequences
@@ -116,13 +116,19 @@ long, then on finding the preamble in the middle of this buffer, we will have
 to take into account how many symbols more we need to extract for the frame
 from the next buffer. This is cumbersome and error-prone.
 
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{two-frame-block}
+	\caption{A depiction of the two-frame block used to buffer received complex
+	         symbols}
+	\label{fig:two-frame-block}
+\end{figure}
+
 A simpler implementation scheme involves having a receive buffer that is two
 \verb+frame_size+s long. We refer to this buffer as the \emph{two-frame block}.
 On each iteration, we search only the first half of the buffer. Even if the
 preamble is found towards the end of the first half, we can still pull out a
 full \verb+frame_size+ from the two-frame block.
-
-%TODO: Insert picture of two-frame block along with the correlating windows.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -144,12 +150,19 @@ where $\bar{x}$ refers to the mean of the vector $\ue{x}$.
 In order to perform running correlations with the new metric, we need to
 come up with an update equation similar to equation~\ref{eqn:old-update}.
 
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{correlation-windows-new}
+	\caption{Correlation windows for the new update formulation}
+	\label{fig:corr-win-new}
+\end{figure}
+
 As before, let $\{x_i\}_{i=0}^{n-1}$ and $\{y_i\}_{i=0}^{n-1}$ be complex
 sequences corresponding to the symbols in the left window and the right window
 respectively. Furthermore, let $\bar{x}$ and $\bar{y}$ be the means of the
 left and right windows in the first time step. In the next time step, both
 windows are moved one step to the right. Let the new means be $\bar{u}$ and
-$\bar{v}$.
+$\bar{v}$. This is shown diagrammatically in figure~\ref{fig:corr-win-new}.
 
 Then we immediately have an update equation for the means themselves:
 \begin{align}
