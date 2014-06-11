@@ -145,7 +145,6 @@ Then we immediately have an update equation for the means themselves:
 	\bar{u} &= \bar{x} + \frac{x_n - x_0}{n} \\
 	\bar{v} &= \bar{y} + \frac{y_n - x_0}{n}
 \end{align}
-
 We want to obtain $\sum_{i=1}^n{\corr{(x_i-\bar{u})}{(y_i-\bar{v})}}$ in terms
 of $\sum_{i=0}^{n-1}{\corr{(x_i-\bar{x})}{(y_i-\bar{y})}}$.
 \begin{equation}
@@ -180,13 +179,55 @@ Therefore,
 	\end{split}
 \end{equation}
 We can acquire the basic form of the update equation by rearranging terms:
-\begin{equation}
+\begin{equation} \label{eqn:new-update-0}
 	\begin{split}
 		c_{new} &= c_{old} - \left ( \frac{x_n - x_0}{n} \right ) (\bar{v} - y_n)^* - \left ( \frac{y_n - y_0}{n} \right )^* (\bar{u} - x_n) \\
 		        & \quad - (n-1) \left ( \frac{x_n - x_0}{n} \right ) \left ( \frac{y_n - y_0}{n} \right )^* \\
 		        & \quad + \corr{(x_n - \bar{u})}{(y_n - \bar{v})} - \corr{(x_0 - \bar{x})}{(y_0 - \bar{y})}
 	\end{split}
 \end{equation}
+
+In order to simplify this expression to minimize the number of correlation terms, we need to group terms. If we group the $(n-1) \left ( \frac{x_n - x_0}{n} \right ) \left ( \frac{y_n - y_0}{n} \right )^*$ term with the $\left ( \frac{y_n - y_0}{n} \right )^* (\bar{u} - x_n)$ term, we get
+\begin{equation}
+	\begin{split}
+		c_{new} &= c_{old} - \left ( \frac{x_n - x_0}{n} \right )(\bar{v} - y_n)^* \\
+				& \quad - \left ( \frac{y_n - y_0}{n} \right )^* \left [ \bar{u} - x_n + \frac{n-1}{n}(x_n - x_0) \right ] \\
+		        & \quad + \corr{(x_n - \bar{u})}{(y_n - \bar{v})} - \corr{(x_0 - \bar{x})}{(y_0 - \bar{y})}
+	\end{split}
+\end{equation}
+Simplifying the $[\cdot]$ term,
+\begin{equation}
+	\begin{split}
+		\frac{n\bar{u} - nx_n + (n-1)x_n - (n-1)x_0}{n} &= \frac{n\bar{u} - (n-1)x_0 - x_n}{n} \\
+		                                                &= \frac{(n\bar{x} + x_n - x_0) - (n-1)x_0 - x_n}{n} \\
+		                                                &= \bar{x} - x_0
+	\end{split}
+\end{equation}
+So that
+\begin{align}
+	c_{new} &= c_{old} - \left ( \frac{x_n - x_0}{n} \right )(\bar{v} - y_n)^* - \left ( \frac{y_n - y_0}{n} \right )^*(\bar{x} - x_0) \notag \\
+	        & \quad + \corr{(x_n - \bar{u})}{(y_n - \bar{v})} - \corr{(x_0 - \bar{x})}{(y_0 - \bar{y})} \notag \\
+	        &= c_{old} + \corr{(\bar{u} - \bar{x})}{(y_n - \bar{v})} + \corr{(\bar{v} - \bar{y})}{(x_0 - \bar{x})} \notag \\
+	        & \quad + \corr{(x_n - \bar{u})}{(y_n - \bar{v})} + \corr{(x_0 - \bar{x})}{(\bar{y} - y_0)} \notag \\
+	        &= c_{old} + \corr{(\bar{u} - \bar{x} + x_n - \bar{u})}{(y_n - \bar{v})} \notag \\
+	        & \quad + \corr{(x_0 - \bar{x})}{(\bar{v} - \bar{y} + \bar{y} - y_0)} \notag \\
+	        &= c_{old} + \corr{(x_n - \bar{x})}{(y_n - \bar{v})} - \corr{(x_0 - \bar{x})}{(y_0 - \bar{v})} \label{eqn:new-update-1}
+\end{align}
+
+If instead we had grouped the $(n-1) \left ( \frac{x_n - x_0}{n} \right ) \left ( \frac{y_n - y_0}{n} \right )^*$ term with the $\left ( \frac{x_n - x_0}{n} \right )(\bar{v} - y_n)^*$ term, we would have arrived at the equivalent update equation
+\begin{equation} \label{eqn:new-update-2}
+	c_{new} = c_{old} + \corr{(x_n - \bar{u})}{(y_n - \bar{y})} - \corr{(x_0 - \bar{u})}{(y_0 - \bar{y})}
+\end{equation}
+
+Equations~\ref{eqn:new-update-1} and~\ref{eqn:new-update-2} together preserve
+the inherent symmetry present in equation~\ref{eqn:new-update-0}. So even
+though the individual equations seem to have lost the symmetry, it is still
+preserved.
+
+The same update equation can also be used for autocorrelation by setting
+$x_i = y_i\;\forall\;i\in\{0,1,\ldots n-1\}$, $\bar{v} = \bar{u}$ and
+$\bar{y} = \bar{x}$.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Practical considerations}
@@ -289,10 +330,9 @@ positions to the left. This ensures that each OFDM block extracted will contain
 only its own symbols. Instead of picking up symbols from the next block, we
 would pick up symbols of the cyclic prefix of the same block. This can then be
 corrected for by performing integer frequency offset estimation, in order to
-rotate the block suitably.
-
-The final location of the packet that is returned is therefore \\
-\verb|        packet_loc = peak_index + preamble_length - safety|
+rotate the block suitably. The final location of the packet that is returned is
+therefore $$\texttt{packet\_loc} = \texttt{peak\_index} +
+\texttt{preamble\_length} - \texttt{safety}$$
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -347,9 +387,10 @@ update information on how many symbols have been extracted and how many more
 are left to extract. Nevertheless, in the name of optimization, this is
 exactly what we now proceed to do.
 
+\begin{sloppypar}
 We maintain two variables that describe the state of the two-frame block
 \emph{outside} of the timing synchronizer at any given point in time. The first
-is $\texttt{num\_left\_to\_search}$, which denotes the number of symbols that
+is \texttt{num\_left\_to\_search}, which denotes the number of symbols that
 are present in the two-frame block that have yet to be searched by the timing
 synchronizer. The second is \verb+num_to_acquire+, which denotes the number of
 symbols that have to be acquired from the complex data source in the current
@@ -357,6 +398,7 @@ iteration of the receive loop to fill the remainder of the buffer. While it is
 redundant to maintain two variables, since we have
 $\texttt{num\_left\_to\_search} + \texttt{num\_to\_acquire} = 2 \times
 \texttt{frame\_size}$ but we do so for the sake of convenience.
+\end{sloppypar}
 
 During initialization, both \verb+num_to_acquire+ and \verb+num_left_to_search+
 are set to \verb+frame_size+. When the first frame is found, it will be found
@@ -376,7 +418,7 @@ we still need to search through in the two-frame block is
 \begin{equation}
 	\begin{split}
 		\texttt{num\_left\_to\_search} &= 2 \times \texttt{frame\_size} \\
-									   & \quad - (\texttt{frame\_size} - \texttt{preamble\_length} \\
+		                               & \quad - (\texttt{frame\_size} - \texttt{preamble\_length} \\
 		                               & \quad \quad \; + \texttt{safety} + \texttt{frame\_guard}) \\
 		                               &= \texttt{frame\_size} + \texttt{preamble\_length} \\
 		                               & \quad - \texttt{safety} - \texttt{frame\_guard}
