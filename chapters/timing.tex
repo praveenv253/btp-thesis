@@ -134,16 +134,47 @@ full \verb+frame_size+ from the two-frame block.
 
 \section{The DC offset problem}
 
+The packet detection algorithm hinges on the fact that the only place where
+the correlation yields a peak is when the two windows are identical. But when
+there is a DC component present in the signal, the algorithm yields a high
+correlation. We therefore need to eliminate the DC component in the signal
+prior to performing the correlation.
+
 \subsection{Discovering the DC offset}
+
+We observed problems with packet detection, wherein received packets were not
+getting decoded faithfully; there being no correlation between the transmitted
+and received constellations. Upon plotting the start of the frame along with
+the computed metric, we noticed the presence of two peaks of the metric (as
+opposed to the expected one). The first peak, which was not caused by the
+preamble, was being erroneously detected as the start of the frame, leading to
+the rest of the frame being incorrectly decoded.
+
+The reason for this was the presence of a large plateau prior to the start of
+the preamble. This signal plateau constituted a DC signal, which correlates
+positively with itself. Since the plateau was longer than the size of the two
+correlation windows, we saw a metric peak at the start of the plateau.
+
+%TODO: Put plots of the double-peak and plateau here.
+
 \subsection{Eliminating the DC offset}
 
-We eliminate the DC offset by subtracting out the mean of each window before
-correlation. That is, instead of equation~\ref{eqn:old-metric}, we have
+To stop a DC signal producing fake peaks in our metric, one option was to
+correlate the signal with the preamble sequence itself (as described later in
+subsection~\ref{subsec:fine-metric}). But this is a computationally expensive
+proposition, since it is not possible to perform running correlations when one
+of the vectors being run over is actually kept fixed.
+
+We therefore eliminate the DC offset by subtracting out the mean of each window
+before correlation. That is, instead of equation~\ref{eqn:old-metric}, we have
 \begin{equation} \label{eqn:new-metric}
 	m = \frac{|\corr{(\ue{x}-\bar{x})}{(\ue{y}-\bar{y})}|}
 	         {|\ue{x}-\bar{x}||\ue{y}-\bar{y}|}
 \end{equation}
 where $\bar{x}$ refers to the mean of the vector $\ue{x}$.
+
+This procedure has no effect on the preamble itself, since the pseudo random
+noise sequence used for the preamble is zero-mean.
 
 \subsection{Running correlations with DC offset elimination}
 
