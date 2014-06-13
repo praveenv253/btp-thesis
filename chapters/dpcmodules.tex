@@ -1,0 +1,111 @@
+\chapter{MODULES FOR DIRTY PAPER CODING}
+\label{chap:dpc-modules}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Log Likelihood Ratio computation}
+
+There is a requirement for the computation of log-likelihood ratios prior to
+decoding the constellation symbols. Furthermore, this log-likelihood ratio is
+to be computed on a repeated constellation.
+
+The reason for this is that while transmitting symbols (from a base station to
+a user in a 2-user system) in the DPC framework, interference from user 2 has
+to be pre-subtracted from the constellation symbol being transmitted for user
+1. During this process, it is possible that the symbol that is finally to be
+transmitted lies outside of the constellation boundary. In such a situation,
+the symbol in question is removed and reintroduced on the other side of the
+constellation. The operation can be likened to a modulo operation, pulling
+symbols outside of an interval back into the interval by repeatedly subtracting
+the interval size.
+
+On the receiver side, for the computation of LLRs, it is essential for
+correctness to consider the possibility that a symbol might actually have come
+from an out-of constellation point, or effectively from the other side of the
+constellation. For the purpose of LLR computation, therefore, we can assume
+that the symbol came from a repeated grid of the constellation.
+
+This has currently been implemented only for a repeated 256-QAM constellation.
+
+\subsection{Approximation of LLR}
+
+The likelihood ratio is defined for each received bit as the ratio of the
+probability of the corresponding transmitted bit being a 1 to to that of it
+being a 0. This probability is computed for a given known noise variance, which
+must be estimated beforehand.
+
+In a 256-QAM constellation, the received constellation symbol could have come
+from any of the 256 constellation points. Each constellation point encodes 8
+bits. So from one received 256-QAM constellation point, we get 8 LLR values. At
+any given bit position, half the constellation points will correspond to 0 and
+the other half to 1. For computing the exact LLR value, we consider the
+probability of the bit having come from each of these constellation symbols.
+
+%TODO: Insert exact LLR formula
+
+To compute the LLR for each bit thus becomes very expensive, because it
+involves 256 exponentiation operations. Since these LLR values are used only as
+guides in the LDPC decoder, we do not need the exact LLR values. It is
+sufficient to have good approximations of the same.
+
+To this end, we neglect all terms except the dominant one in the numerator and
+denominator of the likelihood ratio expression. That is to say, we redefine the
+likelihood ratio as the ratio of the probability that the given received bit is
+a 1, given that it came from the nearest constellation point having a 1 at the
+corresponding bit location, to the probability that the given received bit is a
+0, given that it came from the nearest constellation point having a 0 at the
+corresponding bit location.
+
+%TODO: Insert approximate LLR formula, followed by cancellation of the log and
+%      the exponentiation, to get difference of distances
+
+\subsection{Computation of the approximate LLR}
+
+In order to compute the approximate LLR for a bit, we need only the distance to
+the constellation points corresponding to the nearest 0 and the nearest 1 for
+that bit. To simplify our approach, we rely on the fact that \emph{the
+constellation points corresponding to the nearest 0 and the nearest 1 are the
+same (constant) for all points (all possible receive vectors) within the
+decision region of each transmitted constellation point}.
+
+In other words, we can precompute the constellation points corresponding to the
+nearest 0 and the nearest 1 for each transmitted constellation point and store
+these values in a table.  Then, we only need to find out the nearest
+constellation point corresponding to a receive vector. This will tell us the
+nearest 0 and the nearest 1 corresponding to a receive vector. Subtracting the
+squares of the distances gives us the required LLR value.
+
+\subsection{Nearest constellation point in a repeated constellation}
+
+In order to compute the approximate LLR, we need to find the nearest
+constellation point to the received vector. This is equivalent to the operation
+of slicing , or locating which decision region the given receive vector lies
+within. The only difference is that we need to do this in a repeated
+constellation setting. This, in fact, makes our job a whole lot easier, because
+it enables us to use floor and modulo operations.
+
+%TODO: Plot of repeated constellation (perhaps with different colours)
+
+Consider the canonical 256-QAM constellation where constellation points are
+located at odd points on the grid, from $-15$ to $+15$, on both real and
+imaginary axes. On top of this, we have repetitions, so that the same
+constellation is also present from $-47-15j$ to $-17+15j$ (left bottom and
+right top corners of the constellation rectangle being used to denote
+boundaries) on the left, from $-15+17j$ to $15+47j$ on the top, and so on in
+all other directions.
+
+Note that constellation points on $x=-17$ encode the same 8 bits as
+constellation points on $x=+15$, and so on. This is the idea behind the
+\emph{`modulo'} or the \emph{`repetition'}. This enables us to do the following
+for slicing: we scale and translate the decision boundaries of the
+constellation to the points of discontinuity of the floor function, and use the
+floor function to achieve slicing. Following this, we use a modulo operation to
+bring all repeated constellation points back into the primary constellation.
+
+%TODO: Insert formula here
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Viterbi algorithm for Joint Trellis Shaping}
+
+
