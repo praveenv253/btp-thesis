@@ -13,5 +13,6 @@ thesis.pdf: thesis.dvi
 	dvipdf thesis.dvi
 
 clean:
-	rm -rf *.aux *.log *.out *.toc *.lof *.lot *.bbl *.blg chapters/*.aux
+	rm -rf *.aux *.log *.out *.toc *.lof *.lot *.bbl *.blg
+	rm -rf chapters/*.aux frontmatter/*.aux
 	rm -rf thesis.dvi thesis.pdf
