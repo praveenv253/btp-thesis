@@ -1,0 +1,114 @@
+\chapter{THE MODULARIZED OFDM STACK}
+\label{chap:ofdm-stack}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{The goal}
+
+Ideally, we wish to achieve a level of abstraction over the physical layer that
+allows us to operate at the level of bit-streams. We would like to transmit the
+bits with almost no knowledge of the underlying layer and mechanism. Suppose
+bits were stored as arrays of \lstinline!char! elements, we would like to
+transmit them with a single function call:
+
+\begin{lstlisting}
+	char *bits;
+	// ... fill in the array
+	transmit(bits);
+\end{lstlisting}
+
+Underlying this, there needs to be configurability. That is, if desired, we
+should be able to break the abstraction and set options on the transmitter and
+receiver. One way of doing this might be through a configuration file. But this
+would mean that we cannot change parameters dynamically. So the underlying
+framework should allow us to access internals in the code, if desired:
+
+\begin{lstlisting}
+	double freq = get_transmit_frequency();
+	if(freq != 9e6) {        // Change freq to 900 MHz.
+		change_transmit_frequency(9e6);
+	}
+\end{lstlisting}
+
+In order to achieve this, we need to have a well-abstracted and modularized
+code base. The data should be disconnected from the code to the maximum extent
+possible. Different components of the code should be loosely coupled, that is,
+there should be minimal interdependence between different modules, and they
+should be maximally self-contained.
+
+While, at present, the OFDM stack does not meet this ideal, one may at least
+say that it has plotted itself a course and is well on its way.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{The modules}
+
+The program has been functionally broken up into modules, as shown in
+figure~\ref{fig:modules}.
+
+%TODO: Figure showing modularity
+
+A more detailed description of each of these modules follows.
+
+\subsection{The mapper}
+
+The mapper converts a sequence of bits into one of complex symbols. The reason
+this has been kept outside of the OFDM framework is that different applications
+have different requirements on the kinds of complex symbols generated.
+
+Mapping may be performed on a coded bit stream, in which case it may be
+sufficient to use a standard constellation to perform mapping. But in the
+implementation of DPC, for example, we pre-subtract the expected interference
+from another user. As a result, we do not transmit any fixed constellation
+points. Any point in the available complex plane may be transmitted as a
+symbol.
+
+It is therefore best to allow for different kinds of mappers. In the interest
+of keeping the OFDM framework loosely coupled with the mapping framework, the
+two have been made into separate modules. The default mapper can now be
+`unplugged' and a new, custom-defined mapper can be `plugged in' to the code.
+
+\subsection{The OFDM Modulator}
+
+The OFDM Modulator converts a sequence of complex symbols into a sequence of
+packets. Several configuration details come into play here, such as the number
+of symbols that go into each frame, details of the preamble used in the frame,
+etc.
+
+In order to maintain a list of these values that can be used by the various
+functions that fall under the ambit of the OFDM Modulator, the modulator has
+been made into a class. The data members of the class allow for encapsulation
+and abstraction, so that the settings are exposed for change only if desired.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Limitations}
+
+While the modularized implementation has enabled plugging and unplugging of
+various modules, there are still many things that this framework cannot do.
+
+\subsection{Two different kinds of frames}
+
+While the basic structure is present for making use of two different kinds of
+frames, possibly with different preambles or data masks, the implementation of
+the same is not easy and requires some work on the part of the developer.
+
+Currently, it is possible to create two or more different OfdmModulator and
+OfdmDemodulator object pairs, and then manually specifying a different preamble
+or data mask for each pair. Since all data members are public, they can be
+directly changed after instatiation. An \lstinline!initialize()! call will then
+allocate requisite memory, create \lstinline!fftw_plan!s and so on.
+
+Modulation too, should not be a hassle. However, when calling the demodulate
+function, there is some amount of coupling between the calling program and the
+demodulator in the form of \lstinline!num_left_to_search! and
+\lstinline!num_to_acquire!. If the \lstinline!frame_size!s of the two types
+of frames are different, then during packet detection, we may get different
+values of \lstinline!num_left_to_search! and \lstinline!num_to_acquire!
+from each demodulator object. We would then have to create a temporary buffer
+to manage the different requirements of \lstinline!num_left_to_search! and
+\lstinline!num_to_acquire! for the two demodulators.
+
+\begin{sloppypar}
+\end{sloppypar}
+
