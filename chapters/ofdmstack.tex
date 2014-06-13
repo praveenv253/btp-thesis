@@ -155,8 +155,8 @@ easy and requires some work on the part of the developer.
 Currently, it is possible to create two or more different OfdmModulator and
 OfdmDemodulator object pairs, and then manually specifying a different preamble
 or data mask for each pair. Since all data members are public, they can be
-directly changed after instatiation. An \lstinline!initialize()! call will then
-allocate requisite memory, create \lstinline!fftw_plan!s and so on.
+directly changed after instantiation. An \lstinline!initialize()! call will
+then allocate requisite memory, create \lstinline!fftw_plan!s and so on.
 
 Modulation too, should not be a hassle. However, when calling the demodulate
 function, there is some amount of coupling between the calling program and the
