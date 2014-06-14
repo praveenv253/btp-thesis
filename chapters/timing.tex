@@ -52,9 +52,24 @@ given by
 \end{equation}
 where $(^*)$ denotes complex conjugation in the case of scalars and complex
 conjugate transpose in the case of vectors. All vectors are taken to be row
-vectors.
+vectors. A plot of this metric on actual transmitted data is shown in
+figure~\ref{fig:metric}.
 
-% TODO: Insert a picture of the metric over the data
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{metric}
+	\caption{A sample plot of received data in black, with the metric overlayed
+	         in blue. The sharp singular peak in magenta indicates the maximum
+	         of the metric, which is taken to be the start of the preamble.
+	         Note that the value of the metric is shown at the start of the two
+	         correlation windows. Notice that although the channel distorts the
+	         preamble, the two halves are still more or less identical. This is
+	         the reason behind why this method of packet detection works. Also
+	         notice how the metric stops soon after the peak is detected. The
+	         reasoning behind this is explained in
+	         subsection~\ref{subsec:stop-corr}.}
+	\label{fig:metric}
+\end{figure}
 
 \subsection{Running correlation on the receive buffer}
 
@@ -79,7 +94,7 @@ for the purpose of these calculations, the two windows may be disconnected or
 overlapping. No assumptions are made regarding the equality of certain ranges
 of $x_i$ and $y_i$. Specifically, we do \emph{not} assume that $x_n = y_0$.
 Thus, when $x_i = y_i\;\forall\;i\in\{0,1,\ldots n-1\}$, we automatically
-arrive at the running autocorrelation formula.}
+arrive at the running \emph{auto}correlation formula.}
 
 Let $c_{old}$ be the correlation of windows in the current time step, and
 $c_{new}$ be the correlation of the windows in the next time step. That is,
@@ -417,6 +432,7 @@ more optimizations were performed that focused on reducing the amount of work
 the timing synchronizer had to do.
 
 \subsection{Stopping correlation after threshold breach}
+\label{subsec:stop-corr}
 
 The first optimization relies on the accuracy of the currently used timing
 analysis algorithm. We found that the algorithm is quite selective in picking
