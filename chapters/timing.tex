@@ -307,7 +307,12 @@ cross-correlation is less that the cut-off, we manually set the running
 cross-correlation at the point to be zero, and skip all other checks for the
 packet.
 
-%TODO: Put pseudocode / actual code snippet here
+\begin{lstlisting}
+	if(complex_abs(cross_corr) < CROSS_CORR_THRESHOLD) {
+		cross_corr = Complex(0, 0);
+		corr_coeff = 0;
+	}
+\end{lstlisting}
 
 \subsection{Violation of Cauchy-Schwarz inequality}
 \label{subsec:cs-violation}
@@ -333,7 +338,19 @@ point error. In fact, the error was the accumulated error in the algorithm
 itself. In such situations also, we manually set the cross-correlation value to
 zero to avoid further propagation of this error.
 
-%TODO: Insert code snippet
+\begin{lstlisting}
+	abs1 = complex_abs(cross_corr);
+	abs2 = sqrt(auto_corr_left * auto_corr_right);
+	if(abs1 / abs2 > 1 + EPSILON) {
+		// Violation of the Cauchy-Schwarz inequality!
+		// Explicitly preserve it by killing the cross-correlation.
+		abs1 = 0;
+		corr_coeff = 0;
+		cross_corr = Complex(0, 0);
+	} else {
+		corr_coeff = abs1 / abs2;
+	}
+\end{lstlisting}
 
 \subsection{Fine metric}
 \label{subsec:fine-metric}
@@ -484,5 +501,3 @@ we still need to search through in the two-frame block is
 \verb+num_to_acquire+, which is the number of symbols that need to be acquired
 in the next iteration of the receive loop is then
 $2 \times \texttt{frame\_size} - \texttt{num\_left\_to\_search}$.
-
-% TODO: Appendix on tuning the timing synchronizer
