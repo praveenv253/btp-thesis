@@ -41,7 +41,18 @@ any given bit position, half the constellation points will correspond to 0 and
 the other half to 1. For computing the exact LLR value, we consider the
 probability of the bit having come from each of these constellation symbols.
 
-%TODO: Insert exact LLR formula
+Let $s_i$ be the transmitted constellation points and $r$ be the received
+complex vector. We wish to compute the LLR for a given bit (position) $b$. Let
+$S^0$ be the set of indices $i$ for which $s_i$ has a 0 at bit position $b$,
+and $S^1$ be the set of indices for which $s_i$ has a 1 at bit position $b$.
+Then, the LLR for bit $b$ of the received vector $r$ is
+\begin{equation}
+	\text{LLR}(b) = \text{log} \left (
+		\frac{ \sum_{i \in S^0}{e^{- |s_i - r|^2 / (2 \sigma^2)}} }
+		     { \sum_{i \in S^1}{e^{- |s_i - r|^2 / (2 \sigma^2)}} }
+		\right )
+\end{equation}
+where $\sigma^2$ is the noise variance.
 
 To compute the LLR for each bit thus becomes very expensive, because it
 involves 256 exponentiation operations. Since these LLR values are used only as
@@ -55,9 +66,16 @@ a 1, given that it came from the nearest constellation point having a 1 at the
 corresponding bit location, to the probability that the given received bit is a
 0, given that it came from the nearest constellation point having a 0 at the
 corresponding bit location.
-
-%TODO: Insert approximate LLR formula, followed by cancellation of the log and
-%      the exponentiation, to get difference of distances
+\begin{align}
+	\text{LLR}_{\text{approx}}(b) &= \text{log} \left (
+		\frac{ e^{- |s_{i^*_0} - r|^2 / (2 \sigma^2)} }
+		     { e^{- |s_{i^*_1} - r|^2 / (2 \sigma^2)} }
+		\right ) \\
+		&= \frac{|s_{i^*_1} - r|^2 - |s_{i^*_0} - r|^2}{2 \sigma^2}
+\end{align}
+where $i^*_0$ corresponds to the nearest constellation point with index in
+$S^0$ and $i^*_1$ corresponds to the nearest constellation point with index in
+$S^1$.
 
 \subsection{Computation of the approximate LLR}
 
@@ -87,17 +105,19 @@ it enables us to use floor and modulo operations.
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=0.8\textwidth]{256-qam-reptd-constln}
-	\caption{Repeated 256-QAM constellation, prior to normalization}
+	\caption{Repeated 256-QAM constellation, prior to normalization. The
+	         primary constellation is black, while its repetitions are coloured
+	         variously.}
 	\label{fig:256-qam-reptd}
 \end{figure}
 
 Consider the canonical 256-QAM constellation where constellation points are
 located at odd points on the grid, from $-15$ to $+15$, on both real and
 imaginary axes. On top of this, we have repetitions, so that the same
-constellation is also present from $-47-15j$ to $-17+15j$ (left bottom and
-right top corners of the constellation rectangle being used to denote
+constellation is also present from $-47-15j$ to $-17+15j$ (left-bottom and
+right-top corners of the constellation rectangle being used to denote
 boundaries) on the left, from $-15+17j$ to $15+47j$ on the top, and so on in
-all other directions.
+all other directions (refer figure~\ref{fig:256-qam-reptd}).
 
 Note that constellation points on $x=-17$ encode the same 8 bits as
 constellation points on $x=+15$, and so on. This is the idea behind the
@@ -107,7 +127,16 @@ constellation to the points of discontinuity of the floor function, and use the
 floor function to achieve slicing. Following this, we use a modulo operation to
 bring all repeated constellation points back into the primary constellation.
 
-%TODO: Insert formula here
+\begin{lstlisting}
+	double x = creal(received_symbol);
+	double y = cimag(received_symbol);
+	// Move the received point back into the primary constellation
+	x -= 32 * floor((x+16) / 32);
+	y -= 32 * floor((y+16) / 32);
+	// Find the index of the nearest constellation point
+	int x_index = (int)(floor(x / 2) + 8);
+	int y_index = (int)(floor(y / 2) + 8);
+\end{lstlisting}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
