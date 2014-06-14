@@ -24,9 +24,9 @@ would mean that we cannot change parameters dynamically. So the underlying
 framework should allow us to access internals in the code, if desired:
 
 \begin{lstlisting}
-	double freq = get_transmit_frequency();
-	if(freq != 9e6) {        // Change freq to 900 MHz.
-		change_transmit_frequency(9e6);
+	double gain = get_transmit_gain();
+	if(gain != 25) {        // Change gain to 25.
+		set_transmit_gain(25);
 	}
 \end{lstlisting}
 
@@ -188,3 +188,15 @@ usage of FFTW, using preprocessor tricks to switch between
 \lstinline!fftw_complex!, the double precision implementation and
 \lstinline!fftwf_complex!, the single precision implementation, depending on
 the value of a preprocessor variable.
+
+\subsection{Dynamically changing parameters}
+
+At present, changing parameters, such as the USRP transmit gain, dynamically
+during runtime is not easy. This is because the USRP parameter-setting
+functions are currently coupled with the \lstinline!initialize()! call.
+A re-initialization would cause several variables to get \lstinline!malloc!ed
+again, with unknown side-effects, and is not viable at this time.
+
+There is a need to decouple the initialization of the USRP from the process of
+extracting parameters from \lstinline!program_options! and from the process of
+setting parameters on the USRP.
