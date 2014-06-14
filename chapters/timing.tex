@@ -451,14 +451,19 @@ encounter symbols from the bulk of the frame, and thus the measures taken in
 subsections~\ref{subsec:cs-violation} and~\ref{subsec:fine-metric} cannot be
 done away with.}
 
-%TODO: Insert picture of two-frame block with frame guards and num_to_acquire
-%      and num_left_to_search marked out
-
 We had remarked in subsection~\ref{subsec:two-frame-impl} that a one-frame
 block is cumbersome and error-prone, since it is difficult to maintain and
 update information on how many symbols have been extracted and how many more
 are left to extract. Nevertheless, in the name of optimization, this is
 exactly what we now proceed to do.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{two-frame-block-detailed}
+	\caption{The two-frame block with \texttt{num\_to\_acquire} and
+	         \texttt{num\_left\_to\_search} demarcated}
+	\label{fig:two-frame-block-detailed}
+\end{figure}
 
 \begin{sloppypar}
 We maintain two variables that describe the state of the two-frame block
