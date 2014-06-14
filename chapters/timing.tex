@@ -400,7 +400,15 @@ This received vector is now correlated with the preamble itself, so that the
 fine metric peaks at $\text{argmax}(\ue{h})$ with a peak value of
 $\text{max}(\ue{h})$.
 
-%TODO: Insert fine metric plot
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{fine-metric}
+	\caption{Absolute value of the fine metric in green, overlayed upon the
+	         metric in blue and the received data in black. The threshold used
+	         for the metric was 0.8, as demarcated. Notice how the fine metric
+	         is computed only when the metric exceeds its threshold.}
+	\label{fig:preamble-abs}
+\end{figure}
 
 \subsection{Going left for safety}
 \label{subsec:safety}
