@@ -151,14 +151,19 @@ bits are mapped using a 16-PAM constellation to get the real part of the
 256-QAM constellation point. Similarly, the next four bits are used to get the
 imaginary part.
 
-%TODO: Insert 16-PAM constellation.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{16-pam-constln}
+	\caption{16-PAM constellation with mapping shown}
+	\label{fig:16-pam}
+\end{figure}
 
-The 16-PAM constellation used is almost-Gray coded. Notice that the last three
-bits read the same when sarting at $-15$ and going right, and when starting at
-$+1$ and going right. The first bit, i.e.\ the sign bit, can therefore be used
-to position the constellation point towards the centre of the constellation
-(with lower energy) or towards the edge of the constellation (with higher
-energy).
+The 16-PAM constellation used is almost-Gray coded, as shown in
+figure~\ref{fig:16-pam}. Notice that the last three bits read the same when
+sarting at $-15$ and going right, and when starting at $+1$ and going right.
+The first bit, i.e.\ the sign bit, can therefore be used to position the
+constellation point towards the centre of the constellation (with lower energy)
+or towards the edge of the constellation (with higher energy).
 
 The point of trellis shaping is to choose sign bits in such a way as to
 minimize the overall constellation energy, averaged over many transmitted
