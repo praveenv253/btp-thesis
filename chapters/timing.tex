@@ -318,8 +318,9 @@ roughly of the same order of magnitude.
 
 In order to prevent erroneous packet detection in noisy regions, we introduced
 a cut-off based on the absolute value of the cross-correlation. This cut-off
-value must be empirically determined. If the absolute value of the
-cross-correlation is less that the cut-off, we manually set the running
+value must be empirically determined (refer to appendix~\ref{app:tuning} on
+setting this and other such parameters). If the absolute value of the
+cross-correlation is less than the cut-off, we manually set the running
 cross-correlation at the point to be zero, and skip all other checks for the
 packet.
 
@@ -384,7 +385,7 @@ with the second half in the received vector. We never correlated the received
 symbols with the actual preamble values themselves (which are fixed, and thus
 known at the receiver). It may not be possible to simply increase the threshold
 until this stops happening, since the threshold value is determined by the
-amount of noise in the system. %TODO: Insert ref to appendix with tuning.
+amount of noise in the system.
 
 To fix this issue, the fine metric is computed by correlating the first window
 with the first half of the expected preamble. This is only done when the coarse
