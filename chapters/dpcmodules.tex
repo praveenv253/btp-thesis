@@ -185,7 +185,7 @@ We start by assigning a node weight of zero to the left-most states in the
 trellis. Following this, at `time step', we need to compute the edge weights.
 Given a set of input bits, we need to evaluate all possible choices of sign
 bits. Each edge's weight is then the transmitted energy of the corresponding
-constellation point that results from choosing that particular sign bit.Next,
+constellation point that results from choosing that particular sign bit. Next,
 we need to update the node weights of the next time step. This is done by
 choosing, for each node, an input edge, which yields the least cost after
 adding its branch metric with the corresponding source node's weight. A summary
