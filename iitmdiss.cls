@@ -71,8 +71,8 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Geometry and page layout
-\RequirePackage[compat2,a4paper,left=1.5in,right=1in,top=1in,bottom=0.667in,
-                nohead]{geometry}[2002/07/08]
+\RequirePackage[compat2,a4paper,asymmetric,bindingoffset=0.5in,inner=1in,
+                outer=1in,top=1in,bottom=0.667in,nohead]{geometry}[2002/07/08]
 \parskip 8pt
 
 \renewcommand{\@pnumwidth}{2.5em}
@@ -131,7 +131,7 @@
   \thispagestyle{empty}
   \newpage
   \null
-  \setcounter{page}{0}
+  \setcounter{page}{1}
   \parskip=0pt
   \begin{center}%
   \let \footnote \thanks
@@ -238,13 +238,14 @@
      \vskip 25pt
      \thispagestyle{empty}
      \typeout{Certificate}
-     \setcounter{page}{0}
+     \setcounter{page}{1}
    }
 
    % ACKNOWLEDGEMENTS
    %
    \def\acknowledgements{\chapter*{\centerline{ACKNOWLEDGEMENTS}}
      \addcontentsline{toc}{chapter}{ACKNOWLEDGEMENTS}
+	 \setcounter{page}{1}
    }
 
    % ABSTRACT
