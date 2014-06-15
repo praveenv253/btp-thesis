@@ -168,9 +168,17 @@ the rest of the frame being incorrectly decoded.
 The reason for this was the presence of a large plateau prior to the start of
 the preamble. This signal plateau constituted a DC signal, which correlates
 positively with itself. Since the plateau was longer than the size of the two
-correlation windows, we saw a metric peak at the start of the plateau.
+correlation windows, we saw a metric peak at the start of the plateau. This is
+plotted in figure~\ref{fig:double-peak}.
 
-%TODO: Put plots of the double-peak and plateau here.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{double-peak}
+	\caption{A plot of the timing synchronizer without DC offset elimination.
+	         Notice how the first erroneous peak is clearly aligned with the
+	         start of the plateau.}
+	\label{fig:double-peak}
+\end{figure}
 
 \subsection{Eliminating the DC offset}
 
