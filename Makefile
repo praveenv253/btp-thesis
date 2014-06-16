@@ -1,6 +1,6 @@
 all: thesis.dvi
 
-thesis.dvi: thesis.tex atbeginend.sty iitmdiss.cls setspace.sty \
+thesis.dvi: thesis.tex atbeginend.sty iitmdiss.cls setspace.sty refs.bib \
             customdefs.tex frontmatter/*.tex chapters/*.tex images/* \
             appendices/*.tex
 	latex thesis.tex
