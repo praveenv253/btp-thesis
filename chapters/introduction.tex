@@ -4,6 +4,7 @@
 \section{Orthogonal Frequency Division \\ Multiplexing}
 
 \subsection{Digital communication}
+\label{subsec:digi-comm}
 
 When transmitting digital data over a real (analog) channel, we typically first
 convert the bit stream into a stream of complex symbols, using some kind of
@@ -54,5 +55,31 @@ If we have a model of the channel in frequency domain, (by taking the FFT of
 the channel taps), then we can reverse the effects of ISI completely by simply
 dividing each received subcarrier symbol by the channel response at that
 subcarrier.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{The USRP and the UHD API}
+
+The USRP platform is a computer-hosted software-defined radio. In one sentence,
+the USRP allows you to work at the level of digital abstraction alluded to in
+subsection~\ref{subsec:digi-comm}. The device is connected to the computer
+using either an ethernet cable or a USB 3.0 cable (depending upon the USRP
+model used), and one can interface it to one's program by using the open source
+UHD API.
+
+Different USRP boards can work at different frequencies and have different
+rates. The devices have the capability to act as a full transceiver. But at
+least two distinct devices are required in order to perform experiments where
+data is to be transmitted and received.
+
+The UHD API can be used to interface with the USRP from a C++ program. The API
+provides classes and methods to set up the USRP device with the desired
+frequency, rate and gain settings. One can instantiate a transmit- or receive-
+streamer to send or receive data in the form of a complex data stream.
+
+In this project, the UHD API has been made use of extensively. The use of the
+API has been restricted to two modules, namely the USRP Transmitter module and
+the USRP Receiver module. These are described in
+subsections~\ref{subsec:usrp-transmitter} and~\ref{subsec:usrp-receiver}.
 
 \cite{py:python}
