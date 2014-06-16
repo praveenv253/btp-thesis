@@ -1,5 +1,58 @@
 \chapter{INTRODUCTION}
 \label{chap:intro}
 
-\cite{py:python}
+\section{Orthogonal Frequency Division \\ Multiplexing}
 
+\subsection{Digital communication}
+
+When transmitting digital data over a real (analog) channel, we typically first
+convert the bit stream into a stream of complex symbols, using some kind of
+modulation scheme. Following this, the symbols are pulse-shaped and upconverted
+to the carrier frequency, real and imaginary parts of the symbols being encoded
+in the in-phase and quadrature components of the carrier.
+
+We can retrieve the complex symbols on the receiver side by performing matched
+filtering followed by suitably sampling the analog data. In such a scenario,
+the effects of the channel can also be viewed as purely digital operations on
+the complex data stream. We can, therefore, work at the level of digital
+abstraction, where we only deal with a discrete sequence of complex symbols.
+
+\subsection{Channel effects}
+
+The modulation scheme used will decide how robust the message will be against
+channel effects. A simple but effective digital channel model has an impulse
+response to model inter-symbol interference (caused due to multi-path effects
+in wireless transmission, for example) and an addition of white gaussian noise.
+Simple modulation schemes such as QAM do not fare well in such a channel,
+however, due to ISI.
+
+In order combat the effect of ISI in such cases, we would need to employ
+computationally intensive decoding techniques such as the Viterbi algorithm.
+Alternatives are to use sub-optimal equalization filters such as the
+zero-forcing equalizer, but depending upon how many taps the channel has, these
+filters could turn out to be extremely long, which once again, makes them
+computationally intensive.
+
+\subsection{OFDM solves the ISI problem}
+
+OFDM is a modulation scheme that effectively solves the problem of ISI without
+introducing heavy computational complexity. It does this by placing a block of
+complex data symbols on adjacent narrow-band `subcarriers' in the frequency
+domain. The transmitted data block is the inverse-FFT of the frequency domain
+block. On the receiver side, each data block is converted back into frequency
+domain by taking the FFT of the block.
+
+Each block of data, after the inverse-FFT is performed, is prepended with a
+cyclic prefix, which is a copy of the last few symbols. The length of this
+cyclic prefix is equal to the number of taps in the channel's impulse response.
+The cyclic prefix ensures that the effects of ISI remain limited to the same
+data block and guards against pollution of symbols from adjacent data blocks.
+
+With this framework, the ISI of the channel gets expressed in frequency domain
+as frequency-selective fading, with each subcarrier seeing a different gain.
+If we have a model of the channel in frequency domain, (by taking the FFT of
+the channel taps), then we can reverse the effects of ISI completely by simply
+dividing each received subcarrier symbol by the channel response at that
+subcarrier.
+
+\cite{py:python}
