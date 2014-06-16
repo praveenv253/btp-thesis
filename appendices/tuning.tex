@@ -54,7 +54,7 @@ files and descriptions of their content follows.
 		that go into the second half are never `seen' by the timing
 		synchronizer once the frame is discarded. \\
 		All other debug files also share this particular property. Therefore,
-		all debug files are of the same length, and their data can be overlayed
+		all debug files are of the same length, and their data can be overlaid
 		on a plot (such as in figure~\ref{fig:metric}).
 	\item[\texttt{abs.out}] \hfill \\
 		This file contains the absolute value of the cross-correlation and the
@@ -122,7 +122,7 @@ indicated by the presence of the magenta line.
 
 If there are several places where the packet fails to be detected, however,
 then it calls for checking whether or not the metric exceeds the threshold. If
-not, then the \lstinline!PACKET_THRESHOLD! paramter in the
+not, then the \lstinline!PACKET_THRESHOLD! parameter in the
 \texttt{parameters.h} file needs to be changed so that the threshold is crossed
 by the metric at the starting point of every packet, but is \emph{not} crossed
 in other random locations.
